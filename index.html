@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="var(--c-primary)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>飞红</title>
+<style>
+:root{
+  /* ---- color (见 DESIGN.md) ---- */
+  --c-primary:#FF2442;
+  --c-primary-press:#E51D38;
+  --c-primary-disabled:#FFC2CB;
+  --c-primary-soft:#FFE8EC;
+  --c-star:#FFB400;
+  --c-link:#3B5BDB;
+  --c-link-bg:#F2F5FF;
+  --c-text-1:#1a1a1a;
+  --c-text-2:#2b2b2b;
+  --c-text-3:#999;
+  --c-text-4:#c0c0c0;
+  --c-divider:var(--c-divider);
+  --c-fill:var(--c-fill);
+  --c-bg:#fff;
+  --c-bg-page:#eceff3;
+  --c-tint-pink:#ffe8ec;
+  --c-tint-blue:#eaf2ff;
+  --c-tint-green:#eafaf2;
+  --c-tint-amber:#fff5e6;
+  /* ---- radius ---- */
+  --r-card:10px;
+  --r-cover:12px;
+  --r-btn:9px;
+  --r-pill:18px;
+  --r-chip:6px;
+  /* ---- spacing ---- */
+  --sp-page:14px;
+  --sp-feed:8px;
+  --sp-card:9px;
+  /* ---- motion ---- */
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+/* ---- 暗黑模式：只覆盖 token，不动任何组件样式 ---- */
+body.dark{
+  --c-primary:#FF3B57;
+  --c-primary-press:#E51D38;
+  --c-primary-soft:#3A1016;
+  --c-star:#FFC53D;
+  --c-link:#8FA8FF;
+  --c-link-bg:#1B2138;
+  --c-text-1:#F2F2F2;
+  --c-text-2:#D8D8D8;
+  --c-text-3:#9A9A9A;
+  --c-text-4:#6A6A6A;
+  --c-divider:#262626;
+  --c-fill:#1E1E1E;
+  --c-bg:#121212;
+  --c-bg-page:#000000;
+  --c-tint-pink:#3A1A20;
+  --c-tint-blue:#1A2233;
+  --c-tint-green:#16261E;
+  --c-tint-amber:#33281A;
+  color-scheme:dark;
+  background:var(--c-bg-page);
+}
+body.dark .mecover{background:linear-gradient(135deg,#2A1218 0%,#1C1116 40%,#141414 100%)}
+body.dark .meav{border-color:#121212}
+body.dark #phone{box-shadow:0 0 40px rgba(0,0,0,.7)}
+body.dark .cover .emo{filter:drop-shadow(0 4px 10px rgba(0,0,0,.55))}
+body.dark .toast{background:rgba(255,255,255,.92);color:#111}
+body.dark .sheet{background:#1A1A1A}
+body.dark .mecover .set{background:rgba(255,255,255,.14);color:#E6E6E6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--c-bg-page);color:var(--c-text-1);overflow:hidden;
+  font-size:14px;-webkit-font-smoothing:antialiased;
+}
+#phone{
+  position:relative;max-width:430px;margin:0 auto;height:100vh;height:100dvh;
+  background:var(--c-bg);display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 0 40px rgba(0,0,0,.14);
+}
+@media(max-width:430px){#phone{box-shadow:none}}
+
+/* ---------- 通用 ---------- */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.hide{display:none!important}
+.btn-reset{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}
+
+/* ---------- 顶部栏 ---------- */
+.topbar{
+  display:flex;align-items:center;gap:6px;height:48px;padding:0 12px;
+  background:var(--c-bg);position:sticky;top:0;z-index:9;flex:0 0 auto;
+}
+.htabs{display:flex;align-items:center;gap:18px;flex:1}
+.htab{
+  font-size:16px;color:var(--c-text-3);font-weight:500;position:relative;padding:4px 0;
+  transition:color .18s;
+}
+.htab.on{color:var(--c-text-1);font-weight:700}
+.htab.on::after{
+  content:"";position:absolute;left:50%;bottom:-4px;transform:translateX(-50%);
+  width:18px;height:3px;border-radius:2px;background:var(--c-primary);
+}
+.icon-btn{
+  width:34px;height:34px;display:grid;place-items:center;border-radius:50%;
+  background:none;border:0;color:var(--c-text-1);cursor:pointer;
+}
+.icon-btn:active{background:var(--c-fill)}
+
+/* ---------- 瀑布流 ---------- */
+.feed{display:flex;gap:var(--sp-feed);padding:2px var(--sp-feed) 16px}
+.fcol{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card{background:var(--c-bg);border-radius:var(--r-card);overflow:hidden;cursor:pointer;
+  animation:fade .3s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card:active{opacity:.85}
+.cover{position:relative;width:100%;overflow:hidden;
+  display:grid;place-items:center;font-size:52px;user-select:none}
+.cover .emo{filter:drop-shadow(0 4px 10px rgba(0,0,0,.18));transform:translateY(-2px)}
+.cover .vt{
+  position:absolute;left:8px;bottom:8px;display:flex;align-items:center;gap:4px;
+  background:rgba(0,0,0,.42);color:#fff;font-size:11px;padding:3px 7px;border-radius:20px;
+  backdrop-filter:blur(4px);
+}
+.card-body{padding:8px 9px 10px}
+.card-title{
+  font-size:13.5px;line-height:1.35;color:var(--c-text-1);font-weight:500;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  word-break:break-word;
+}
+.card-meta{display:flex;align-items:center;gap:5px;margin-top:7px}
+.av{
+  width:18px;height:18px;border-radius:50%;display:grid;place-items:center;
+  font-size:10px;flex:0 0 auto;overflow:hidden;
+}
+.av img{width:100%;height:100%;object-fit:cover}
+.card-name{font-size:11px;color:var(--c-text-3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.like{font-size:11px;color:var(--c-text-3);display:flex;align-items:center;gap:2px}
+.like.liked{color:var(--c-primary)}
+
+/* ---------- 底部 tab ---------- */
+#tabbar{
+  flex:0 0 auto;height:52px;padding-bottom:env(safe-area-inset-bottom);
+  display:flex;align-items:center;background:var(--c-bg);
+  border-top:.5px solid var(--c-divider);position:relative;z-index:10;
+}
+.tb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  color:var(--c-text-3);font-size:10px;border:0;background:none;cursor:pointer;height:100%}
+.tb.on{color:var(--c-text-1);font-weight:600}
+.tb svg{width:22px;height:22px}
+.tb.plus{flex:0 0 auto;width:64px}
+.plus-btn{
+  width:38px;height:30px;border-radius:9px;background:var(--c-primary);color:#fff;
+  display:grid;place-items:center;font-size:22px;line-height:1;
+  box-shadow:0 3px 10px rgba(255,36,66,.35);
+}
+.plus-btn:active{transform:scale(.94)}
+
+/* ---------- 详情页 ---------- */
+.overlay{position:absolute;inset:0;background:var(--c-bg);z-index:30;display:flex;flex-direction:column;
+  animation:slideIn .22s ease}
+@keyframes slideIn{from{transform:translateX(18%);opacity:.5}to{transform:none;opacity:1}}
+.dhead{
+  flex:0 0 auto;height:52px;display:flex;align-items:center;gap:8px;padding:0 10px;
+  background:var(--c-bg);position:relative;z-index:2;
+}
+.dhead .back{width:32px;height:32px;font-size:24px;line-height:1;display:grid;place-items:center;color:var(--c-text-1)}
+.dau{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
+.dau .av{width:30px;height:30px;font-size:15px}
+.dau .nm{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.follow{
+  border:1px solid var(--c-primary);color:var(--c-primary);background:var(--c-bg);border-radius:14px;
+  padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;
+}
+.follow.on{border-color:var(--c-divider);color:var(--c-text-3)}
+.dbody{padding:0 var(--sp-page) 90px}
+.dcover{width:100%;border-radius:var(--r-cover);display:grid;place-items:center;font-size:96px;
+  margin:2px 0 14px;overflow:hidden;position:relative}
+.dcover img{width:100%;display:block}
+.dtitle{font-size:18px;line-height:1.4;font-weight:700;margin:0 0 10px;word-break:break-word}
+.dtext{font-size:15px;line-height:1.75;white-space:pre-wrap;word-break:break-word;color:var(--c-text-2);margin:0 0 12px}
+.dtags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tag{
+  color:var(--c-link);font-size:13px;background:var(--c-link-bg);border-radius:var(--r-chip);padding:3px 8px;cursor:pointer;
+}
+.dtime{font-size:12px;color:var(--c-text-4);margin-bottom:14px}
+.dline{height:.5px;background:var(--c-divider);margin:0 0 14px}
+.cm-title{font-size:13px;color:var(--c-text-3);margin-bottom:12px}
+.cm{display:flex;gap:9px;margin-bottom:16px}
+.cm .av{width:30px;height:30px;font-size:15px}
+.cm-main{flex:1;min-width:0}
+.cm-top{display:flex;align-items:baseline;gap:8px}
+.cm-name{font-size:12.5px;color:var(--c-text-3);font-weight:500}
+.cm-time{font-size:11px;color:var(--c-text-4)}
+.cm-text{font-size:14px;line-height:1.55;margin-top:3px;word-break:break-word}
+.cm-like{font-size:11px;color:var(--c-text-4);margin-top:4px;display:flex;gap:10px}
+.dfoot{
+  position:absolute;left:0;right:0;bottom:0;background:var(--c-bg);
+  border-top:.5px solid var(--c-divider);padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:10px;z-index:3;
+}
+.cm-input{
+  flex:1;height:36px;border-radius:var(--r-pill);border:0;background:var(--c-fill);padding:0 14px;
+  font-size:13.5px;outline:none;color:var(--c-text-1);font-family:inherit;
+}
+.cm-input::placeholder{color:#a8a8a8}
+.act{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--c-text-2);background:none;border:0;
+  cursor:pointer;padding:4px 2px}
+.act svg{width:21px;height:21px}
+.act.on{color:var(--c-primary)}
+.act.on svg{fill:var(--c-primary);stroke:var(--c-primary)}
+.act.star.on{color:var(--c-star)}
+.act.star.on svg{fill:var(--c-star);stroke:var(--c-star)}
+.pop{animation:pop .3s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+
+/* ---------- 发布页 ---------- */
+.pubhead{
+  flex:0 0 auto;height:50px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;border-bottom:.5px solid var(--c-divider);
+}
+.pubhead .tt{font-size:16px;font-weight:600}
+.pubhead .cancel{font-size:15px;color:var(--c-text-3)}
+.submit{
+  background:var(--c-primary);color:#fff;border:0;border-radius:16px;padding:6px 16px;
+  font-size:13.5px;font-weight:600;cursor:pointer;
+}
+.submit:disabled{background:var(--c-primary-disabled);cursor:not-allowed}
+.pubbody{padding:14px 14px 40px}
+.covers{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
+.cv{
+  position:relative;aspect-ratio:1;border-radius:8px;display:grid;place-items:center;
+  font-size:26px;cursor:pointer;border:2px solid transparent;overflow:hidden;
+}
+.cv.sel{border-color:var(--c-primary)}
+.cv img{width:100%;height:100%;object-fit:cover}
+.cv.add{background:var(--c-fill);color:#bbb;font-size:24px;border:1px dashed var(--c-divider)}
+.lbl{font-size:12px;color:var(--c-text-3);margin:0 0 8px}
+.ptitle{
+  width:100%;border:0;font-size:16px;font-weight:600;outline:none;font-family:inherit;
+  padding:14px 0 10px;border-bottom:.5px solid var(--c-fill);color:var(--c-text-1);
+}
+.ptitle::placeholder{color:var(--c-text-4);font-weight:500}
+.ptext{
+  width:100%;border:0;font-size:15px;line-height:1.7;outline:none;font-family:inherit;
+  padding:12px 0;min-height:150px;resize:none;color:var(--c-text-1);
+}
+.ptext::placeholder{color:var(--c-text-4)}
+.ptags{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.ptags .tag{display:flex;align-items:center;gap:4px}
+.ptags .tag i{font-style:normal;color:#9aa9d8;cursor:pointer}
+.taginput{
+  border:0;background:var(--c-fill);border-radius:6px;padding:5px 10px;font-size:13px;
+  outline:none;font-family:inherit;width:110px;color:var(--c-text-1);
+}
+
+/* ---------- 消息 ---------- */
+.msgwrap{padding:10px 0}
+.mentry{display:grid;grid-template-columns:repeat(4,1fr);padding:8px 6px 18px}
+.me1{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.me1 .ico{
+  width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:24px;position:relative;
+}
+.me1 .ico b{
+  position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;border-radius:9px;
+  background:var(--c-primary);color:#fff;font-size:10px;display:grid;place-items:center;padding:0 4px;font-weight:500;
+}
+.me1 .lb{font-size:11.5px;color:var(--c-text-3)}
+.nlist{padding:0 14px}
+.nitem{display:flex;gap:10px;padding:12px 0;border-bottom:.5px solid var(--c-divider)}
+.nitem .av{width:38px;height:38px;font-size:17px}
+.nmain{flex:1;min-width:0}
+.nname{font-size:13.5px;font-weight:600}
+.ntext{font-size:12.5px;color:#888;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ntime{font-size:11px;color:var(--c-text-4);margin-top:3px}
+
+/* ---------- 我的 ---------- */
+.mecover{height:120px;position:relative;
+  background:linear-gradient(135deg,#ffd6dd 0%,#ffe9ec 40%,#fff5f0 100%);}
+.mecover .set{position:absolute;right:12px;top:12px;font-size:19px;color:var(--c-text-3);
+  background:rgba(255,255,255,.7);border-radius:50%;width:30px;height:30px;display:grid;place-items:center}
+.mecard{padding:0 16px;margin-top:-34px;position:relative}
+.mehead{display:flex;align-items:flex-end;gap:12px}
+.meav{
+  width:74px;height:74px;border-radius:50%;border:3px solid var(--c-bg);
+  display:grid;place-items:center;font-size:34px;flex:0 0 auto;overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,.1);background:var(--c-bg);
+}
+.meav img{width:100%;height:100%;object-fit:cover}
+.mebtn{margin-left:auto;margin-bottom:6px;border:1px solid var(--c-divider);border-radius:16px;
+  background:var(--c-bg);padding:6px 14px;font-size:12.5px;color:var(--c-text-2);cursor:pointer}
+.mename{font-size:19px;font-weight:700;margin:12px 0 4px}
+.meid{font-size:12px;color:var(--c-text-4)}
+.mebio{font-size:13px;color:var(--c-text-3);line-height:1.6;margin:8px 0 14px}
+.mestat{display:flex;gap:22px;padding:0 0 14px}
+.mestat div{font-size:12px;color:var(--c-text-3);display:flex;flex-direction:column;gap:2px;align-items:center}
+.mestat b{font-size:16px;color:var(--c-text-1);font-weight:600}
+.metabs{display:flex;border-top:.5px solid var(--c-fill);border-bottom:.5px solid var(--c-fill);
+  position:sticky;top:0;background:var(--c-bg);z-index:5}
+.metab{flex:1;padding:11px 0;text-align:center;font-size:14px;color:var(--c-text-3);position:relative;cursor:pointer}
+.metab.on{color:var(--c-text-1);font-weight:700}
+.metab.on::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+  width:20px;height:2.5px;background:var(--c-primary);border-radius:2px}
+
+.empty{text-align:center;color:var(--c-text-4);font-size:13px;padding:60px 0}
+.toast{
+  position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);
+  background:rgba(0,0,0,.78);color:#fff;font-size:13.5px;padding:10px 18px;border-radius:10px;
+  z-index:99;animation:tin .2s ease;pointer-events:none;white-space:nowrap;max-width:80%;
+}
+@keyframes tin{from{opacity:0;transform:translate(-50%,-40%)}to{opacity:1;transform:translate(-50%,-50%)}}
+.mask{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:40;display:grid;place-items:center;padding:30px}
+.sheet{background:var(--c-bg);border-radius:14px;width:100%;padding:20px 18px 16px;text-align:center}
+.sheet h3{margin:0 0 6px;font-size:16px}
+.sheet p{margin:0 0 16px;font-size:13px;color:#888;line-height:1.6}
+.sheet .row{display:flex;gap:10px}
+.sheet .row button{flex:1;height:42px;border-radius:10px;border:0;font-size:14.5px;cursor:pointer;font-family:inherit}
+.sheet .row .g{background:var(--c-fill);color:#555}
+.sheet .row .r{background:var(--c-primary);color:#fff;font-weight:600}
+</style>
+</head>
+<body>
+<div id="phone">
+  <div id="app" style="flex:1;display:flex;flex-direction:column;overflow:hidden"></div>
+  <nav id="tabbar"></nav>
+</div>
+<script>
+/* =======================================================
+   飞红 App —— 单文件移动端社区应用
+   数据存 localStorage，首次进入自动灌入种子内容
+   ======================================================= */
+const KEY = 'feihong_v1';
+
+const ICONS = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg>',
+  video:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/></svg>',
+  msg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12.5c0 3.6-3.6 6.5-8 6.5-1 0-2-.15-2.9-.42L4.5 20l1.2-3.2C4.6 15.6 4 14.1 4 12.5 4 8.9 7.6 6 12 6s8 2.9 8 6.5z"/></svg>',
+  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M4.8 20c.6-3.6 3.6-5.6 7.2-5.6s6.6 2 7.2 5.6"/></svg>',
+  search:'<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-7.5-9.3A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7.5 2.7C19.5 15.4 12 20 12 20z"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.6 2.6 5.3 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.7l5.9-.8z"/></svg>'
+};
+
+/* ---------- 种子数据 ---------- */
+function seed(){
+  const now = Date.now();
+  const N = (id,title,body,tags,emo,hue,ratio,author,avh,likes,cms,ago)=>{
+    const a = Array.isArray(author) ? author : [author, avh||hue, emo];
+    return {
+      id, title, body, tags, emo, hue, ratio,
+      author:{ name:a[0], hue:a[1], emo:a[2]||'🙂' },
+      likes, liked:false, saved:false,
+      comments: cms.map((c,i)=>({ user:c[0], hue:c[1], emo:c[2], text:c[3], ago:i+1, likes:Math.floor(Math.random()*20) })),
+      time: now - ago*3600*1000, mine:false
+    };
+  };
+  return {
+    notes:[
+      N('n1','深夜食堂｜一个人也要好好吃饭 🍜',
+        '加班到十点回家，冰箱里只剩两个鸡蛋和一把挂面。\n\n但我还是给自己煮了一碗面：\n1️⃣ 葱油先熬，小火慢煎到葱变脆\n2️⃣ 挂面煮八分熟捞出来过一遍冷水\n3️⃣ 淋两勺葱油 + 半勺生抽 + 一点点糖\n4️⃣ 煎蛋要单面，蛋黄流心的那种\n\n吃完洗完碗，突然觉得今天也没那么糟。\n\n一个人吃饭不是将就，是不想辜负自己。',
+        ['深夜食堂','一人食','简单料理','生活记录'],'🍜',28,1.34,'小满的厨房',22,3261,
+        [['阿May',200,'🌷','葱油看着好香，明天试试'],['夜猫子',210,'🐱','凌晨看饿了…'],['小满的厨房',22,'🍜','@阿May 记得葱要小火，别糊了']],5),
+      N('n2','秋日通勤｜三件单品解决一周穿搭 🧥',
+        '降温了，衣柜又空了。\n\n其实只需要三件：\n· 一件燕麦色针织开衫（内搭外穿都行）\n· 一条直筒牛仔（遮腿型，显高）\n· 一双乐福鞋（走一天不累）\n\n配色记住一个原则：全身不超过三个颜色，同色系深浅叠穿最安全。\n\n周一配白T，周三加衬衫，周五换高领。同一套衣服能撑一整周。',
+        ['穿搭','通勤','秋季','极简衣橱'],'🧥',205,1.12,'衣橱研究所',210,1876,
+        [['Kiko',330,'👗','求针织衫链接'],['Momo',180,'🧣','同色系真的百搭']],26),
+      N('n3','川西小环线｜三天两夜不踩坑攻略 🏔',
+        '刚从川西回来，把踩过的坑都写下来。\n\n🚗 路线：成都 → 四姑娘山 → 丹巴 → 新都桥 → 康定 → 成都\n\n⚠️ 三个必须知道：\n1. 海拔爬升要慢，第一天别洗澡\n2. 早晚温差 20 度，冲锋衣不是可选项\n3. 加油站少，看到就加满\n\n📷 拍照机位：新都桥的光影下午四点半最好，猫鼻梁看贡嘎日出要五点半到。\n\n最美的不是景点，是路上突然出现的一片雪山。',
+        ['川西','自驾','旅行攻略','摄影'],'🏔',168,1.42,'一路向西',160,5423,
+        [['小鹿',120,'🦌','十月去合适吗'],['一路向西',160,'🏔','@小鹿 十月中下旬最好，秋色正浓'],['阿飞',40,'🚙','收藏了，寒假就去']],50),
+      N('n4','在家复刻生椰拿铁，成本四块 ☕',
+        '试了七次，终于找到那个味道。\n\n配方：\n· 厚椰乳 150ml（一定要厚椰乳，不是椰汁）\n· 浓缩咖啡 40ml（没有机器就用冻干粉冲浓一点）\n· 冰块满杯\n· 糖浆 5ml，不加也行\n\n顺序很重要：冰 → 椰乳 → 咖啡液最后沿杯壁倒，才有分层。\n\n一杯四块钱，楼下卖二十八。',
+        ['咖啡','自制饮品','省钱','生椰拿铁'],'☕',38,1.06,'咖啡因依赖',30,2914,
+        [['Nana',50,'🍩','厚椰乳是哪个牌子'],['咖啡因依赖',30,'☕','@Nana 菲诺的，别买成椰子汁']],30),
+      N('n5','出租屋改造｜5㎡ 阳台变成小花园 🌿',
+        '预算 600，两天做完。\n\n🪴 植物选耐晒的：薄荷、迷迭香、天竺葵、多肉\n🪑 折叠桌 + 铁艺椅 168\n🪣 花盆统一白色塑料盆，套麻布袋\n💡 太阳能串灯 39，晚上氛围直接拉满\n\n关键心得：不要买太多品种，同一类植物重复摆，看起来才像设计过。\n\n现在每天早上在这里喝咖啡，感觉房租都值了。',
+        ['出租屋改造','阳台','绿植','租房生活'],'🌿',118,1.28,'租房改造日记',110,4102,
+        [['小满',22,'🍜','串灯好有氛围'],['阿七',260,'🌱','麻布袋套盆这个思路绝了']],72),
+      N('n6','今年读完 12 本书，最推荐这 3 本 📚',
+        '不是书单，是读后感。\n\n1️⃣ 《被讨厌的勇气》—— 看完把"别人怎么看我"这件事戒了一半\n2️⃣ 《掌控习惯》—— 每天1%，一年37倍，这账算得我心服口服\n3️⃣ 《置身事内》—— 终于看懂了房价、土地财政和地方政府的关系\n\n今年最大的变化：不再追求读完，而是读完一章就想想能不能用上。\n\n读书不是为了数量，是为了某一句话在某个时刻救你一下。',
+        ['读书','书单','自我提升'],'📚',262,1.18,'半页笔记',270,1688,
+        [['林深',250,'📖','置身事内真的值得反复读']],96),
+      N('n7','我家猫的 100 个表情包（第 1 弹）🐱',
+        '橘猫，三岁，性格像领导。\n\n图一是它发现我拆了它的罐头但只给了一半的表情。\n图二是它睡在我键盘上的第 47 次。\n图三是它第一次见到雪。\n\n养猫三年，我学会了一件事：\n你永远不是房子的主人。',
+        ['猫','橘猫','萌宠','日常'],'🐱',24,1.36,'橘座本人',20,8834,
+        [['汪汪',320,'🐶','这个眼神笑死'],['Momo',180,'🧣','第47次哈哈哈']],120),
+      N('n8','黄黑皮显白口红｜我把 20 支试了一遍 💄',
+        '素颜试色，无滤镜，室内自然光。\n\n✅ 显白：豆沙红、砖红、正红（偏冷调）\n❌ 显黑：荧光粉、橘调奶茶、裸色\n\n三个小心机：\n· 薄涂打底 + 中间叠一层，比全涂自然\n· 牙齿不白的话，避开紫调\n· 唇线模糊一点显年轻\n\n最后说句真心话：显白不是目的，气色好才是。',
+        ['口红','试色','黄黑皮','美妆'],'💄',344,1.02,'镜子前的十分钟',350,3245,
+        [['Yuki',10,'💋','终于有人说实话了'],['阿May',200,'🌷','豆沙红我也有，真的显白']],150),
+      N('n9','零失败巴斯克蛋糕，空气炸锅版 🍰',
+        '材料：奶油奶酪 200g、糖 45g、鸡蛋 2 个、淡奶油 100ml、低粉 8g\n\n步骤：\n1. 奶酪室温软化，加糖打到顺滑\n2. 分次加蛋液，每次都拌匀\n3. 加淡奶油、筛入低粉\n4. 空气炸锅 200 度 25 分钟，表面焦黑就是对的\n\n冷藏四小时再切，中间是流心的。\n\n第一次做就成功，因为我照抄了这个配方没乱改。',
+        ['烘焙','巴斯克','空气炸锅','甜品'],'🍰',44,1.22,'周末烤箱',40,5210,
+        [['Nana',50,'🍩','焦黑的程度好治愈'],['小鹿',120,'🦌','明晚就做']],180),
+      N('n10','手机拍出胶片感的 5 个参数 📷',
+        '不用买相机，手机就够。\n\n1. 曝光压 -0.7（关键！胶片是暗的）\n2. 白平衡偏移到偏洋红 + 偏黄\n3. 开人像模式但虚化调最低\n4. 找有直射光的时段，上午十点或下午四点\n5. 后期把高光拉低、阴影提亮、加轻微颗粒\n\n最重要的不是参数，是别怕拍暗。\n\n亮堂堂的照片永远没有情绪。',
+        ['摄影','手机摄影','胶片感','修图'],'📷',218,1.15,'光影笔记',225,2733,
+        [['阿飞',40,'🚙','压曝光这条太对了'],['林深',250,'📖','收藏，周末去试']],200),
+      N('n11','坚持跑步 100 天，我瘦了 8 斤 🏃',
+        '先说结论：瘦得不多，但变化很大。\n\n📉 体重 8 斤\n📈 静息心率从 72 到 58\n😴 入睡时间从 1 小时到 15 分钟\n😊 情绪稳定了太多\n\n三个让我坚持下来的办法：\n1. 不设配速目标，只要求"出门"\n2. 固定路线，减少决策成本\n3. 跑完必须记录，打卡比意志力可靠\n\n第 1 天跑了 800 米就喘，第 100 天跑了 8 公里。',
+        ['跑步','减脂','坚持','自律'],'🏃',192,1.30,'每天多跑一点',185,6104,
+        [['汪汪',320,'🐶','"只要求出门"这句说到我了']],168),
+      N('n12','3000 块把出租屋改成 ins 风 🛋',
+        '房东不让打孔，所以全部是软装。\n\n预算分配：\n· 沙发套 + 抱枕 480\n· 地毯 260（最大的提升！）\n· 落地灯 210\n· 收纳柜 590\n· 窗帘 320（换成纱帘，光立刻变柔）\n· 挂画 + 绿植 400\n· 其他小物 740\n\n三个原则：统一色调（米白+木色）、光源分散（别只开顶灯）、留白（别塞满）。\n\n现在朋友来都说像样板间。',
+        ['出租屋','软装','ins风','改造'],'🛋',282,1.20,'小空间大改造',285,7456,
+        [['Kiko',330,'👗','地毯确实是最划算的'],['小满',22,'🍜','纱帘这个我要学']],210),
+      N('n13','我用 4600 行代码做了个 Agent 网关 💻',
+        '不是教程，是复盘。\n\n做这个项目的起因很简单：让 AI 直接改数据库，我不敢。\n\n所以我把"信任"拆成了四件事：\n· 每一次写操作都要留证据（谁、什么时候、改了什么）\n· 危险动作必须过审批闸门\n· 同样的调用重复三次就自动卡死\n· 效果必须能双跑对照，不能靠模型自评\n\n4600 行，零第三方依赖，跑在一台 2C4G 的机器上。\n\n写完最大的收获不是技术，是想清楚了一件事：\n可控比聪明重要。',
+        ['AI','Agent','后端','独立开发'],'💻',212,1.16,'飞脑实验室',215,924,
+        [['一路向西',160,'🏔','审批闸门这个设计很实用'],['半页笔记',270,'📖','想看实现细节']],240),
+      N('n14','大阪 5 天 4 晚，人均 3800 ✈️',
+        '含机票酒店，全程记账。\n\n💰 明细：\n机票 1580（提前两个月买的）\n住宿 4 晚 1120（难波，离地铁 3 分钟）\n交通 280（买了周游卡）\n吃饭 620\n门票购物 200\n\n🍜 必吃：黑门市场的海鲜丼、道顿堀的章鱼烧、一家叫"自由轩"的咖喱饭\n\n⚠️ 避坑：别在道顿堀主街吃，往旁边小巷走两步，价格差一半。\n\n最值得的是早上七点的黑门市场，游客还没起床。',
+        ['大阪','日本旅行','穷游','攻略'],'✈️',352,1.24,'穷游记账本',345,4318,
+        [['小鹿',120,'🦌','3800 太能省了'],['穷游记账本',345,'✈️','@小鹿 主要是机票买得早']],260)
+    ],
+    me:{ name:'飞红用户', hue:350, emo:'🙂', bio:'还没有简介，点右上角编辑一下～', follows:12, fans:36, likes:128, ip:'广东' },
+    notif:[
+      { user:'小满的厨房', hue:22, emo:'🍜', text:'赞了你的笔记', time:'2 小时前' },
+      { user:'一路向西', hue:160, emo:'🏔', text:'收藏了你的笔记', time:'5 小时前' },
+      { user:'衣橱研究所', hue:210, emo:'🧥', text:'关注了你', time:'昨天' },
+      { user:'橘子汽水', hue:30, emo:'🍊', text:'评论：这个思路我学到了', time:'昨天' }
+    ],
+    version:1
+  };
+}
+
+let DB;
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){ const d = JSON.parse(raw); if(d && d.notes) return d; }
+  }catch(e){}
+  const s = seed(); localStorage.setItem(KEY, JSON.stringify(s)); return s;
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){} }
+DB = load();
+
+/* ---------- 工具 ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => n >= 10000 ? (n/10000).toFixed(1)+'万' : n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n);
+function ago(t){
+  const d = Date.now() - t, m = 60000, h = 3600*1000, day = 86400000;
+  if(d < m) return '刚刚';
+  if(d < h) return Math.floor(d/m)+' 分钟前';
+  if(d < day) return Math.floor(d/h)+' 小时前';
+  if(d < 30*day) return Math.floor(d/day)+' 天前';
+  const dd = new Date(t);
+  return (dd.getMonth()+1)+'-'+String(dd.getDate()).padStart(2,'0');
+}
+const grad = (h, s) => `linear-gradient(${s||135}deg, hsl(${h} 78% 72%), hsl(${(h+34)%360} 72% 58%))`;
+function avatar(a, cls){
+  const inner = a.img ? `<img src="${a.img}" alt="">` : (a.emo || '🙂');
+  return `<span class="av ${cls||''}" style="background:${a.img?'var(--c-fill)':grad(a.hue)};color:#fff">${inner}</span>`;
+}
+function toast(msg){
+  const old = $('.toast'); if(old) old.remove();
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  $('#phone').appendChild(el);
+  setTimeout(()=>el.remove(), 1500);
+}
+
+/* ---------- 状态 ---------- */
+let darkMode = false;
+function applyDark(on){
+  darkMode = !!on;
+  document.body.classList.toggle('dark', darkMode);
+  try{ localStorage.setItem('feihong_dark', darkMode ? '1' : '0'); }catch(e){}
+}
+const state = { view:'home', tab:'发现', noteId:null, meTab:'笔记', playing:false };
+const stack = [];
+
+function go(view, opt){
+  if(view === 'detail'){ stack.push({ view:state.view, tab:state.tab, meTab:state.meTab }); }
+  state.view = view;
+  Object.assign(state, opt||{});
+  render();
+}
+
+/* ---------- 底部 tab ---------- */
+function renderTabbar(){
+  const bar = $('#tabbar');
+  if(['detail','publish'].includes(state.view)){ bar.classList.add('hide'); return; }
+  bar.classList.remove('hide');
+  const items = [
+    ['home','首页','home'],
+    ['video','视频','video'],
+    ['plus','',null],
+    ['msg','消息','msg'],
+    ['me','我','me']
+  ];
+  bar.innerHTML = items.map(([k,label,icon])=>{
+    if(k === 'plus') return `<div class="tb plus"><div class="plus-btn" data-act="publish">＋</div></div>`;
+    const on = state.view === k ? 'on' : '';
+    return `<button class="tb ${on}" data-act="tab" data-k="${k}">${ICONS[icon]}<span>${label}</span></button>`;
+  }).join('');
+}
+
+/* ---------- 卡片 ---------- */
+function cardHTML(n){
+  const tl = n.coverImg ? `<img src="${n.coverImg}" alt="">` : `<span class="emo">${n.emo}</span>`;
+  const vt = n.emo === '💻' ? '' : '';
+  return `<div class="card" data-act="open" data-id="${n.id}">
+    <div class="cover" style="padding-top:${(n.ratio*100).toFixed(0)}%;background:${n.coverImg?'var(--c-fill)':grad(n.hue)}">
+      <div style="position:absolute;inset:0;display:grid;place-items:center">${tl}</div>
+    </div>
+    <div class="card-body">
+      <div class="card-title">${esc(n.title)}</div>
+      <div class="card-meta">
+        ${avatar(n.author)}
+        <span class="card-name">${esc(n.author.name)}</span>
+        <span class="like ${n.liked?'liked':''}">${n.liked?'♥':'♡'} ${fmt(n.likes)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function feedHTML(list){
+  const a = [], b = [];
+  let ha = 0, hb = 0;
+  list.forEach(n=>{
+    const h = n.ratio + 0.62;
+    if(ha <= hb){ a.push(n); ha += h; } else { b.push(n); hb += h; }
+  });
+  return `<div class="feed">
+    <div class="fcol">${a.map(cardHTML).join('')}</div>
+    <div class="fcol">${b.map(cardHTML).join('')}</div>
+  </div>`;
+}
+
+/* ---------- 首页 ---------- */
+function renderHome(){
+  const tabs = ['关注','发现','附近'];
+  let list = DB.notes.slice();
+  if(state.tab === '关注') list = list.filter(n=>n.author.name === DB.me.name || n.liked || n.saved);
+  if(state.tab === '附近') list = list.slice().sort((x,y)=>x.hue-y.hue);
+  const app = $('#app');
+  app.innerHTML = `
+    <div class="scroll" id="homeScroll">
+      <div class="topbar">
+        <div class="htabs">
+          ${tabs.map(t=>`<span class="htab ${state.tab===t?'on':''}" data-act="htab" data-t="${t}">${t}</span>`).join('')}
+        </div>
+        <button class="icon-btn" data-act="search">${ICONS.search}</button>
+      </div>
+      ${list.length ? feedHTML(list) : '<div class="empty">这里还没有内容<br>去「发现」逛逛吧</div>'}
+      <div style="text-align:center;color:var(--c-text-4);font-size:12px;padding:6px 0 26px">—— 已经到底啦 ——</div>
+    </div>`;
+}
+
+/* ---------- 视频页 ---------- */
+function renderVideo(){
+  const list = DB.notes.slice().sort((a,b)=>b.likes-a.likes).slice(0,8);
+  $('#app').innerHTML = `<div class="scroll">
+    <div class="topbar"><div class="htabs"><span class="htab on">视频</span></div>
+      <button class="icon-btn" data-act="search">${ICONS.search}</button></div>
+    <div style="padding:0 10px 20px">
+      ${list.map(n=>`
+        <div class="card" style="margin-bottom:10px;border-radius:12px" data-act="open" data-id="${n.id}">
+          <div class="cover" style="padding-top:118%;background:${n.coverImg?'var(--c-fill)':grad(n.hue)}">
+            <div style="position:absolute;inset:0;display:grid;place-items:center">
+              ${n.coverImg?`<img src="${n.coverImg}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">`:`<span class="emo" style="font-size:64px">${n.emo}</span>`}
+              <div style="position:absolute;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.85);display:grid;place-items:center;font-size:20px;color:#333">▶</div>
+            </div>
+          </div>
+          <div class="card-body"><div class="card-title" style="font-size:14.5px">${esc(n.title)}</div>
+            <div class="card-meta">${avatar(n.author)}<span class="card-name">${esc(n.author.name)}</span>
+              <span class="like">♥ ${fmt(n.likes)}</span></div>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ---------- 消息 ---------- */
+function renderMsg(){
+  const entries = [
+    ['💗','赞和收藏','var(--c-tint-pink)', 3],
+    ['👤','新增关注','var(--c-tint-blue)', 1],
+    ['💬','评论和@','var(--c-tint-green)', 2],
+    ['✉️','私信','var(--c-tint-amber)', 0]
+  ];
+  $('#app').innerHTML = `<div class="scroll">
+    <div class="topbar"><div class="htabs"><span class="htab on">消息</span></div></div>
+    <div class="msgwrap">
+      <div class="mentry">
+        ${entries.map(([e,l,bg,c])=>`
+          <div class="me1" data-act="msgentry" data-l="${l}">
+            <div class="ico" style="background:${bg}">${e}${c?`<b>${c}</b>`:''}</div>
+            <div class="lb">${l}</div>
+          </div>`).join('')}
+      </div>
+      <div class="dline" style="margin:0 14px 10px"></div>
+      <div class="nlist">
+        ${DB.notif.map(n=>`
+          <div class="nitem">
+            ${avatar(n)}
+            <div class="nmain">
+              <div class="nname">${esc(n.user)}</div>
+              <div class="ntext">${esc(n.text)}</div>
+              <div class="ntime">${esc(n.time)}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div style="text-align:center;color:var(--c-text-4);font-size:12px;padding:20px 0 30px">没有更多消息了</div>
+    </div>
+  </div>`;
+}
+
+/* ---------- 我的 ---------- */
+function renderMe(){
+  const mine = DB.notes.filter(n=>n.mine);
+  const saved = DB.notes.filter(n=>n.saved);
+  const liked = DB.notes.filter(n=>n.liked);
+  let list = state.meTab === '笔记' ? mine : state.meTab === '收藏' ? saved : liked;
+  $('#app').innerHTML = `<div class="scroll">
+    <div class="mecover">
+      <div class="set" style="right:52px" data-act="toggledark">${darkMode?'☀️':'🌙'}</div>
+      <div class="set" data-act="editme">⚙</div>
+    </div>
+    <div class="mecard">
+      <div class="mehead">
+        <div class="meav" style="background:${DB.me.img?'var(--c-fill)':grad(DB.me.hue)};color:#fff">
+          ${DB.me.img?`<img src="${DB.me.img}">`:DB.me.emo}
+        </div>
+        <button class="mebtn" data-act="editme">编辑资料</button>
+      </div>
+      <div class="mename">${esc(DB.me.name)}</div>
+      <div class="meid">飞红号：${esc((DB.me.name||'user').slice(0,6))}_${String(DB.me.fans).padStart(3,'0')} · IP 属地：${esc(DB.me.ip||'未知')}</div>
+      <div class="mebio">${esc(DB.me.bio)}</div>
+      <div class="mestat">
+        <div><b>${DB.me.follows}</b>关注</div>
+        <div><b>${DB.me.fans}</b>粉丝</div>
+        <div><b>${DB.me.likes}</b>获赞与收藏</div>
+      </div>
+    </div>
+    <div class="metabs">
+      ${['笔记','收藏','赞过'].map(t=>`<div class="metab ${state.meTab===t?'on':''}" data-act="metab" data-t="${t}">${t}</div>`).join('')}
+    </div>
+    ${list.length ? feedHTML(list) : `<div class="empty">还没有${state.meTab === '笔记' ? '发布过笔记' : state.meTab === '收藏' ? '收藏过内容' : '赞过内容'}</div>`}
+    <div style="height:20px"></div>
+  </div>`;
+}
+
+/* ---------- 详情 ---------- */
+function renderDetail(){
+  const n = DB.notes.find(x=>x.id === state.noteId);
+  if(!n){ state.view = 'home'; return render(); }
+  const cover = n.coverImg
+    ? `<div class="dcover" style="padding:0"><img src="${n.coverImg}"></div>`
+    : `<div class="dcover" style="padding-top:${Math.min(n.ratio,1.3)*100}%;background:${grad(n.hue)}">
+         <span style="position:absolute;font-size:96px">${n.emo}</span></div>`;
+  $('#app').innerHTML = `<div class="overlay">
+    <div class="dhead">
+      <button class="back btn-reset" data-act="back">‹</button>
+      <div class="dau">
+        ${avatar(n.author)}
+        <span class="nm">${esc(n.author.name)}</span>
+      </div>
+      <button class="follow ${n.mine?'on':''}" data-act="follow">${n.mine?'本人':'关注'}</button>
+    </div>
+    <div class="scroll dbody" id="dScroll">
+      ${cover}
+      <h1 class="dtitle">${esc(n.title)}</h1>
+      <div class="dtext">${esc(n.body)}</div>
+      <div class="dtags">${(n.tags||[]).map(t=>`<span class="tag" data-act="tag" data-t="${esc(t)}">#${esc(t)}</span>`).join('')}</div>
+      <div class="dtime">${ago(n.time)} · 来自 ${esc(DB.me.ip||'广东')}</div>
+      <div class="dline"></div>
+      <div class="cm-title">共 ${n.comments.length} 条评论</div>
+      <div id="cmList">
+        ${n.comments.map((c,i)=>`
+          <div class="cm">
+            ${avatar({hue:c.hue, emo:c.emo})}
+            <div class="cm-main">
+              <div class="cm-top"><span class="cm-name">${esc(c.user)}</span><span class="cm-time">${c.ago} 天前</span></div>
+              <div class="cm-text">${esc(c.text)}</div>
+              <div class="cm-like"><span>♡ ${c.likes||0}</span><span>回复</span></div>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="empty" style="padding:20px 0 10px;font-size:12px">—— 到底了 ——</div>
+    </div>
+    <div class="dfoot">
+      <input class="cm-input" id="cmInput" placeholder="说点什么..." maxlength="120">
+      <button class="act ${n.saved?'on star':''}" data-act="save">${ICONS.star}<span id="saveN">${n.saved?'已藏':'收藏'}</span></button>
+      <button class="act ${n.liked?'on':''}" data-act="like">${ICONS.heart}<span id="likeN">${fmt(n.likes)}</span></button>
+    </div>
+  </div>`;
+}
+
+/* ---------- 发布 ---------- */
+const coverPool = [
+  {emo:'🌅',hue:20},{emo:'🍰',hue:340},{emo:'🌿',hue:130},
+  {emo:'☕',hue:35},{emo:'🏔',hue:200},{emo:'🐱',hue:280}
+];
+let draft = { coverIdx:0, coverImg:null, title:'', body:'', tags:[] };
+
+function renderPublish(){
+  const sel = coverPool[draft.coverIdx];
+  $('#app').innerHTML = `<div class="overlay">
+    <div class="pubhead">
+      <button class="cancel btn-reset" data-act="cancelpub">取消</button>
+      <span class="tt">发布笔记</span>
+      <button class="submit" data-act="submitpub" ${draft.title.trim()?'':'disabled'}>发布</button>
+    </div>
+    <div class="scroll pubbody">
+      <div class="lbl">封面</div>
+      <div class="covers">
+        ${coverPool.map((c,i)=>`
+          <div class="cv ${draft.coverImg? '' : (i===draft.coverIdx?'sel':'')}" style="background:${grad(c.hue)}" data-act="pickcover" data-i="${i}">${c.emo}</div>`).join('')}
+        ${draft.coverImg?`<div class="cv sel"><img src="${draft.coverImg}"></div>`:''}
+        <label class="cv add" for="fileUp">＋</label>
+        <input id="fileUp" type="file" accept="image/*" style="display:none">
+      </div>
+      <div style="font-size:11.5px;color:var(--c-text-4);margin:0 0 4px">选一个封面样式，或上传自己的图</div>
+
+      <input class="ptitle" id="pTitle" placeholder="填写标题会有更多赞哦～" maxlength="20" value="${esc(draft.title)}">
+      <textarea class="ptext" id="pText" placeholder="分享你的生活、经验和想法…" maxlength="1000">${esc(draft.body)}</textarea>
+
+      <div class="lbl">添加话题</div>
+      <div class="ptags" id="pTags">
+        ${draft.tags.map((t,i)=>`<span class="tag">#${esc(t)} <i data-act="deltag" data-i="${i}">×</i></span>`).join('')}
+        <input class="taginput" id="tagIn" placeholder="输入后回车" maxlength="12">
+      </div>
+      <div style="font-size:11.5px;color:var(--c-text-4);line-height:1.7;margin-top:18px">
+        · 内容会保存在本机浏览器，不会上传到任何服务器<br>
+        · 图文内容请遵守社区规范，禁止搬运
+      </div>
+    </div>
+  </div>`;
+  // 绑定输入
+  const t = $('#pTitle'), b = $('#pText'), tg = $('#tagIn');
+  t.addEventListener('input', e=>{
+    draft.title = e.target.value;
+    $('.submit').disabled = !draft.title.trim();
+  });
+  b.addEventListener('input', e=>{ draft.body = e.target.value; });
+  tg.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' && e.target.value.trim()){
+      const v = e.target.value.trim().replace(/^#/,'');
+      if(!draft.tags.includes(v)) draft.tags.push(v);
+      e.target.value = '';
+      const cur = [$('#pTitle').value, $('#pText').value];
+      renderPublish();
+      $('#pTitle').value = cur[0]; $('#pText').value = cur[1];
+      $('#tagIn').focus();
+    }
+  });
+  const fu = $('#fileUp');
+  fu.addEventListener('change', e=>{
+    const f = e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = ev=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const max = 640, sc = Math.min(1, max/Math.max(img.width, img.height));
+        const cv = document.createElement('canvas');
+        cv.width = img.width*sc; cv.height = img.height*sc;
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        draft.coverImg = cv.toDataURL('image/jpeg', 0.72);
+        draft.ratio = +(cv.height/cv.width).toFixed(2) || 1.2;
+        const cur = [$('#pTitle').value, $('#pText').value, draft.tags.slice()];
+        renderPublish();
+        $('#pTitle').value = cur[0]; $('#pText').value = cur[1];
+        toast('封面已就位');
+      };
+      img.src = ev.target.result;
+    };
+    rd.readAsDataURL(f);
+  });
+}
+
+/* ---------- 渲染 ---------- */
+function render(){
+  renderTabbar();
+  if(state.view === 'home') renderHome();
+  else if(state.view === 'video') renderVideo();
+  else if(state.view === 'msg') renderMsg();
+  else if(state.view === 'me') renderMe();
+  else if(state.view === 'detail') renderDetail();
+  else if(state.view === 'publish') renderPublish();
+}
+
+/* ---------- 事件委托 ---------- */
+document.addEventListener('click', e=>{
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act;
+
+  if(act === 'tab'){
+    const k = el.dataset.k;
+    if(k === 'home' || k === 'video' || k === 'msg' || k === 'me'){
+      state.view = k; stack.length = 0; render();
+    }
+    return;
+  }
+  if(act === 'publish'){ draft = { coverIdx:0, coverImg:null, title:'', body:'', tags:[] }; go('publish'); return; }
+  if(act === 'htab'){ state.tab = el.dataset.t; render(); return; }
+  if(act === 'search'){
+    const kw = prompt('搜索内容 / 作者');
+    if(kw && kw.trim()){
+      const q = kw.trim();
+      const hit = DB.notes.filter(n=>n.title.includes(q)||n.body.includes(q)||n.author.name.includes(q)||(n.tags||[]).some(t=>t.includes(q)));
+      toast(hit.length ? `找到 ${hit.length} 篇相关笔记` : '没有找到相关内容');
+      if(hit.length){ state.tab='发现'; $('#app').innerHTML = `<div class="scroll">
+        <div class="topbar"><div class="htabs"><span class="htab on">搜索「${esc(q)}」</span></div>
+          <button class="icon-btn" data-act="tab" data-k="home">✕</button></div>
+        ${feedHTML(hit)}</div>`; }
+    }
+    return;
+  }
+  if(act === 'open'){ go('detail', { noteId: el.dataset.id }); return; }
+  if(act === 'back'){
+    const prev = stack.pop();
+    state.view = prev ? prev.view : 'home';
+    if(prev){ state.tab = prev.tab; state.meTab = prev.meTab; }
+    render(); return;
+  }
+  if(act === 'follow'){ toast('已关注（演示）'); return; }
+  if(act === 'tag'){ toast('#'+el.dataset.t); return; }
+  if(act === 'like'){
+    const n = DB.notes.find(x=>x.id === state.noteId); if(!n) return;
+    n.liked = !n.liked;
+    n.likes += n.liked ? 1 : -1;
+    if(n.liked) DB.me.likes++;
+    save();
+    el.classList.toggle('on', n.liked);
+    el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+    $('#likeN').textContent = fmt(n.likes);
+    return;
+  }
+  if(act === 'save'){
+    const n = DB.notes.find(x=>x.id === state.noteId); if(!n) return;
+    n.saved = !n.saved; save();
+    el.classList.toggle('on', n.saved);
+    el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+    $('#saveN').textContent = n.saved ? '已藏' : '收藏';
+    toast(n.saved ? '已收藏' : '已取消收藏');
+    return;
+  }
+  if(act === 'metab'){ state.meTab = el.dataset.t; render(); return; }
+  if(act === 'toggledark'){ applyDark(!darkMode); render(); toast(darkMode ? '已切换暗黑模式' : '已切回浅色模式'); return; }
+  if(act === 'msgentry'){ toast(el.dataset.l + '（演示）'); return; }
+  if(act === 'editme'){
+    const name = prompt('修改昵称（最多 12 字）', DB.me.name);
+    if(name && name.trim()){ DB.me.name = name.trim().slice(0,12); save(); render(); toast('已保存'); }
+    return;
+  }
+  if(act === 'pickcover'){
+    draft.coverImg = null;
+    draft.coverIdx = +el.dataset.i;
+    const cur = [$('#pTitle').value, $('#pText').value];
+    renderPublish();
+    $('#pTitle').value = cur[0]; $('#pText').value = cur[1];
+    return;
+  }
+  if(act === 'deltag'){
+    draft.tags.splice(+el.dataset.i, 1);
+    const cur = [$('#pTitle').value, $('#pText').value];
+    renderPublish();
+    $('#pTitle').value = cur[0]; $('#pText').value = cur[1];
+    return;
+  }
+  if(act === 'cancelpub'){
+    if(draft.title || draft.body){
+      if(!confirm('放弃这篇笔记？')) return;
+    }
+    state.view = 'home'; render(); return;
+  }
+  if(act === 'submitpub'){
+    if(!draft.title.trim()) return toast('先写个标题吧');
+    const c = coverPool[draft.coverIdx];
+    const note = {
+      id: 'my_' + Date.now(),
+      title: draft.title.trim(),
+      body: draft.body.trim() || '（作者什么都没写）',
+      tags: draft.tags.slice(),
+      emo: c.emo, hue: c.hue,
+      ratio: draft.coverImg ? (draft.ratio||1.2) : 1.2,
+      coverImg: draft.coverImg || null,
+      author: { name: DB.me.name, hue: DB.me.hue, emo: DB.me.emo, img: DB.me.img },
+      likes: 0, liked: false, saved: false,
+      comments: [],
+      time: Date.now(),
+      mine: true
+    };
+    DB.notes.unshift(note);
+    DB.me.likes += 0;
+    save();
+    draft = { coverIdx:0, coverImg:null, title:'', body:'', tags:[] };
+    state.view = 'home'; state.tab = '发现';
+    render();
+    setTimeout(()=>toast('发布成功 🎉'), 60);
+    return;
+  }
+});
+
+/* 评论发送 */
+document.addEventListener('keydown', e=>{
+  if(e.target.id === 'cmInput' && e.key === 'Enter'){
+    const v = e.target.value.trim();
+    if(!v) return;
+    const n = DB.notes.find(x=>x.id === state.noteId);
+    if(!n) return;
+    n.comments.unshift({ user: DB.me.name, hue: DB.me.hue, emo: DB.me.emo, text: v, ago: 0, likes: 0 });
+    save();
+    e.target.value = '';
+    renderDetail();
+    toast('评论已发布');
+    setTimeout(()=>{ const s = $('#dScroll'); if(s) s.scrollTop = 260; }, 50);
+  }
+});
+
+/* 启动 */
+try{ darkMode = localStorage.getItem('feihong_dark') === '1'; }catch(e){}
+applyDark(darkMode);
+render();
+</script>
+</body>
+</html>
